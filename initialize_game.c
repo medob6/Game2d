@@ -26,6 +26,7 @@ static void	init_exit(t_exit *exit)
 	exit->img.img = NULL;
 	exit->fram.img = NULL;
 	exit->action = NULL;
+	exit->fram_nbr = 0;
 	exit->x = 0;
 	exit->y = 0;
 }
@@ -57,5 +58,5 @@ void	init_game(t_game *game)
 	game->wall.img = NULL;
 	game->floor.img = NULL;
 	init_map(&game->map);
-	game->frames_delay = 0;
+	game->frame_count = 0;
 }

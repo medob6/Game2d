@@ -1,9 +1,9 @@
 #include <math.h>
 #include <mlx.h>
-#include <stdio.h>
 #include <stdlib.h>
-#define wi_w 1000
-#define wi_h 1000
+
+#define WIN_W 1000
+#define WIN_H 1000
 
 typedef struct s_img
 {
@@ -13,103 +13,112 @@ typedef struct s_img
 	int		line_len;
 	int		endian;
 }			t_img;
+
 typedef struct s_data
 {
-	void	*params[2];
-	int		redius;
+	void	*mlx;
+	void	*win;
+	double	zoom_factor;
+	double	offset_x;
+	double	offset_y;
 	t_img	img;
 }			t_data;
-int	put(t_data *data, int x, int y, int color)
-{
-	unsigned int	*change_val;
 
-	if (x < 0 || y < 0 || x > wi_w || wi_h < y)
-		return (0);
-	change_val = (unsigned int *)(data->img.addr + ((y * data->img.line_len)
-				+ (x * ((data->img.bpp) / 8))));
-	*change_val = color;
-	return (0);
-}
-int	draw_cer(t_data *data)
+void	put_pixel(t_img *img, int x, int y, int color)
 {
-	double		i;
-	int			x;
-	int			y;
-	double		o;
-	int			r;
-	static int	color = 0x00000000;
+	char	*pixel;
 
-	i = 0;
-	x = 0;
-	y = 0;
-	o = 0;
-	while (y < wi_h)
+	if (x < 0 || y < 0 || x >= WIN_W || y >= WIN_H)
+		return ;
+	pixel = img->addr + (y * img->line_len + x * (img->bpp / 8));
+	*(unsigned int *)pixel = color;
+}
+
+void	clear_image(t_img *img)
+{
+	for (int y = 0; y < WIN_H; y++)
 	{
-		while (x < wi_w)
+		for (int x = 0; x < WIN_W; x++)
 		{
-			put(data, x, y, 0x00000000);
-			x++;
+			put_pixel(img, x, y, 0x000000); // Black background
 		}
-		x = 0;
-		y++;
 	}
-	x = 0;
-	y = 0;
-	r = data->redius;
-	while (r > 0)
+}
+
+void	draw_scene(t_data *data)
+{
+	double	transformed_x;
+	double	transformed_y;
+
+	clear_image(&data->img);
+	for (int y = 0; y < WIN_H; y++)
 	{
-		while (i < 360)
+		for (int x = 0; x < WIN_W; x++)
 		{
-			o = (i * M_PI) / 180;
-			x = cos(o) * r + wi_w / 2;
-			y = sin(o) * r + wi_h / 2;
-			put(data, x, y, color++);
-			i += 0.1;
+			// Transform coordinates
+			transformed_x = (x - data->offset_x) / data->zoom_factor;
+			transformed_y = (y - data->offset_y) / data->zoom_factor;
+			// Draw a shape (e.g., circle)
+			if ((transformed_x - WIN_W / 2) * (transformed_x - WIN_W / 2) + (transformed_y - WIN_H / 2) * (transformed_y - WIN_H / 2) <= 100 * 100)
+			{
+				put_pixel(&data->img, x, y, 0x00FF0000); // Red color
+			}
 		}
-		i = 0;
-		r--;
 	}
-	mlx_put_image_to_window(data->params[0], data->params[1], data->img.img, 0,
-		0);
-	return (0);
+	// Display image in the window
+	mlx_put_image_to_window(data->mlx, data->win, data->img.img, 0, 0);
 }
-int	destroy(int code, t_data *data)
-{
-	if (code == 65307)
-	{
-		mlx_destroy_window(data->params[0], data->params[1]);
-		exit(0);
+
+int	mouse_zoom(int button, int x, int y, t_data *data)
+{//10.10
+	double	prev_zoom;
+
+	prev_zoom = data->zoom_factor;
+	if (button == 4)
+	{ // Scroll up (zoom in)
+		data->zoom_factor *= 1.1;
 	}
+	else if (button == 5)
+	{ // Scroll down (zoom out)
+		data->zoom_factor /= 1.1;
+	}
+	// Adjust offsets to keep mouse position constant during zoom
+	data->offset_x = x + (data->offset_x - x) * (data->zoom_factor / prev_zoom);
+	data->offset_y =  y + (data->offset_y - y) * (data->zoom_factor / prev_zoom);
+	draw_scene(data);
 	return (0);
 }
-int	zoom(int code, int x, int y, t_data *data)
+
+int	close_window(t_data *data)
 {
-	if (code == 4)
-		data->redius += 10;
-	else if (code == 5)
-		data->redius -= 10;
-	return (0);
-}
-int	close_win(t_data *data)
-{
-	mlx_destroy_window(data->params[0], data->params[1]);
+	mlx_destroy_window(data->mlx, data->win);
 	exit(0);
 	return (0);
 }
+
 int	main(void)
 {
-	t_data	data;
+	t_data data;
 
-	data.redius = 100;
-	data.params[0] = mlx_init();
-	data.params[1] = mlx_new_window(data.params[0], wi_w, wi_h, "Omar");
-	data.img.img = mlx_new_image(data.params[0], wi_w, wi_h);
+	data.zoom_factor = 1.0;
+	data.offset_x = 0;
+	data.offset_y = 0;
+
+	data.mlx = mlx_init();
+	data.win = mlx_new_window(data.mlx, WIN_W, WIN_H, "Mouse Zoom");
+
+	// Initialize image buffer
+	data.img.img = mlx_new_image(data.mlx, WIN_W, WIN_H);
 	data.img.addr = mlx_get_data_addr(data.img.img, &data.img.bpp,
 			&data.img.line_len, &data.img.endian);
-	mlx_key_hook(data.params[1], destroy, &data);
-	mlx_hook(data.params[1], 17, 0, close_win, &data);
-	mlx_mouse_hook(data.params[1], zoom, &data);
-	mlx_loop_hook(data.params[0], draw_cer, &data);
-	mlx_loop(data.params[0]);
+
+	// Initial draw
+	draw_scene(&data);
+
+	// Hooks
+	mlx_hook(data.win, 17, 0, close_window, &data); // Close window
+	mlx_mouse_hook(data.win, mouse_zoom, &data);    // Mouse zoom
+
+	mlx_loop(data.mlx);
 	return (0);
 }

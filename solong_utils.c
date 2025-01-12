@@ -14,5 +14,6 @@ void	init_image(void *mlx, t_image *img, char *path)
 		perror("Error: Failed to load image\n");
 		exit(EXIT_FAILURE);
 	}
-	img->addr = mlx_get_data_addr(img->img, &img->bpp, &img->line_len,&img->endian);
+	img->addr = mlx_get_data_addr(img->img, &img->bpp, &img->line_len,
+			&img->endian);
 }

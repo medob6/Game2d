@@ -6,7 +6,7 @@
 /*   By: mbousset <mbousset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/05 18:14:00 by mbousset          #+#    #+#             */
-/*   Updated: 2025/01/06 09:00:44 by mbousset         ###   ########.fr       */
+/*   Updated: 2025/01/12 10:43:42 by mbousset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,20 +125,14 @@ static char	*validate_map_item(t_game *game, char item, int *yx, int *items)
 
 static char	*check_item_counts(int *items)
 {
-	const char	*errors[4];
-
-	errors[0] = "Can't have more or less than one player on the map. Are you Drank";
-	errors[1] = "Can't have more or less than one exit. This isn't a maze for the lost!";
-	errors[2] = "You need at least one coin to play. You're broke!";
-	errors[3] = "Not enough space for the game";
 	if (items[0] != 1)
-		return ((char *)errors[0]);
+		return ("Can't have more or less than one player on the map. Are you Drank");
 	if (items[1] != 1)
-		return ((char *)errors[1]);
+		return ("Can't have more or less than one exit. This isn't a maze for the lost!");
 	if (items[2] == 0)
-		return ((char *)errors[2]);
+		return ("You need at least one coin to play. You're broke!");
 	if (items[3] == 0)
-		return ((char *)errors[3]);
+		return ("Not enough space for the game");
 	return (NULL);
 }
 
@@ -168,8 +162,8 @@ char	*check_map_c_p_e(t_game *game)
 char	**duplicate_map(char **map, int height)
 {
 	char	**copy;
+	int		i;
 
-	int i, j;
 	copy = malloc(sizeof(char *) * height);
 	if (!copy)
 		return (NULL);
@@ -189,7 +183,7 @@ char	**duplicate_map(char **map, int height)
 	return (copy);
 }
 
-int	flood_fill(struct s_flood *map_data, int x, int y)
+int	flood_fill(t_flood *map_data, int x, int y)
 {
 	if (x < 0 || y < 0 || map_data->map[y] == NULL
 		|| map_data->map[y][x] == '\0')
@@ -202,7 +196,9 @@ int	flood_fill(struct s_flood *map_data, int x, int y)
 		return (0);
 	}
 	if (map_data->map[y][x] == 'C')
+	{
 		(*map_data->coins_left)--;
+	}
 	map_data->map[y][x] = 'V';
 	flood_fill(map_data, x + 1, y);
 	flood_fill(map_data, x - 1, y);
@@ -211,20 +207,47 @@ int	flood_fill(struct s_flood *map_data, int x, int y)
 	return (*map_data->coins_left == 0 && *map_data->exit_reachble);
 }
 
+int	store_coin_positions(t_game *game)
+{
+	int x, y, count;
+	game->coins_x_y = malloc(game->coin.total * sizeof(t_cordinant));
+	if (!game->coins_x_y)
+		return (0);
+	count = 0;
+	y = 0;
+	while (y < game->map.map_h)
+	{
+		x = 0;
+		while (x < game->map.map_w)
+		{
+			if (game->map.map[y][x] == 'C')
+			{
+				game->coins_x_y[count].x = x;
+				game->coins_x_y[count].y = y;
+				game->coins_x_y[count].exist = 1;
+				count++;
+			}
+			x++;
+		}
+		y++;
+	}
+	return (1);
+}
+
 int	check_map_solvable(t_game *game)
 {
-	char			**copy;
-	int				result;
-	int				exit_reachable;
-	int				coins_left;
-	struct s_flood	floodfill_chek;
+	char	**copy;
+	int		result;
+	int		exit_reachable;
+	int		coins_left;
+	t_flood	floodfill_chek;
 
 	exit_reachable = 0;
 	coins_left = game->coin.total;
 	copy = duplicate_map(game->map.map, game->map.map_h);
 	if (!copy)
 		return (0);
-	floodfill_chek = (struct s_flood){copy, &coins_left, &exit_reachable};
+	floodfill_chek = (t_flood){copy, &coins_left, &exit_reachable};
 	result = flood_fill(&floodfill_chek, game->player.x, game->player.y);
 	free_map(copy, game->map.map_h);
 	return (result);
@@ -240,7 +263,8 @@ static int	handle_map_error(t_game *game, char **map, char *msg, int i)
 
 static int	validate_line_length(char *line, int width)
 {
-	return (ft_strlen(line) - (line[ft_strlen(line) - 1] == '\n') == width);
+	return (ft_strlen(line) - (line[ft_strlen(line)
+			- 1] == '\n') == (unsigned long)width);
 }
 
 static int	validate_map_line(char **map, char *line, t_game *game, int i)

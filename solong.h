@@ -11,21 +11,31 @@
 # include <string.h>
 # include <unistd.h>
 
+// Constants
 # define TILE_SIZE 64
-# define PLAYER_SPEED 4
 # define MIN_MAP_HEIGHT 3
 # define MIN_MAP_WIDTH 3
 # define MIN_MAP_SIZE 18
+# define STEPS 12
 
-// a banch of structs that that identfy path of a background
-// i should have 4 background ok
-# define green_grass Path_to_grass
-# define yellow_grass Path_to_yellow_grass
-# define harsh_green_grass Path_to_hgreen_grass
-# define Rocky_land Path_to_rocky_land
+// Key Codes
+# define KEY_ESCAPE 65307
+# define KEY_UP 119    // 'w'
+# define KEY_DOWN 115  // 's'
+# define KEY_LEFT 97   // 'a'
+# define KEY_RIGHT 100 // 'd'
+# define ARROW_UP 65362
+# define ARROW_DOWN 65364
+# define ARROW_LEFT 65361
+# define ARROW_RIGHT 65363
 
-// all this 4 backgrounds images must be in one image
+// Background Types
+# define GREEN_GRASS Path_to_grass
+# define YELLOW_GRASS Path_to_yellow_grass
+# define HARSH_GREEN_GRASS Path_to_hgreen_grass
+# define ROCKY_LAND Path_to_rocky_land
 
+// Struct Definitions
 typedef struct s_image
 {
 	void			*img;
@@ -46,9 +56,6 @@ typedef struct s_map
 	char			**map_back_data;
 }					t_map;
 
-// here add a struct for player , exit ,
-// collictebels bisecly all things that need a backgroung or moving
-
 typedef struct s_player
 {
 	int				x;
@@ -59,10 +66,7 @@ typedef struct s_player
 	char			action;
 	t_image			fram;
 	int				move_offset;
-
 }					t_player;
-
-// exit action open in animated way ,
 
 typedef struct s_exit
 {
@@ -79,6 +83,8 @@ typedef struct s_coin
 	t_image			img;
 	int				fram_nbr;
 	int				collected;
+	int				x;
+	int				y;
 	int				total;
 	t_image			fram;
 }					t_coin;
@@ -89,6 +95,14 @@ typedef struct s_d_wall
 	t_image			farm;
 	int				d_wall_farm_nbr;
 }					t_d_wall;
+
+typedef struct s_cordinant
+{
+	int				x;
+	int				y;
+	int				exist;
+}					t_cordinant;
+
 typedef struct s_game
 {
 	void			*mlx;
@@ -101,47 +115,54 @@ typedef struct s_game
 	t_image			floor;
 	t_image			background;
 	t_map			map;
-	int				frames_delay;
+	int				frame_count;
+	int				rerender_map;
+	t_cordinant		*coins_x_y;
 }					t_game;
 
-struct				s_flood
+typedef struct s_flood
 {
 	char			**map;
 	int				*coins_left;
 	int				*exit_reachble;
-};
+}					t_flood;
 
-// mlx color utiles
-int					get_t(int trgb);
+// Function Prototypes
 
-// checks for errors
+// Utilities
+int	get_t(int trgb); // transparenssy
+
+// Error Handling
 void				initial_check(int args, int map_check, char *error);
 
-// map control functions
-void				render_map(t_game *game);
+// Map Control
 int					check_map(t_game *game, char *path);
 
-// image initializiation funcs
+// Image Initialization
 void				init_game(t_game *game);
 void				init_image(void *mlx, t_image *img, char *path);
 int					handle_input(int key, t_game *game);
 
-// animation and motion
-void				compose_frams(t_game *game, t_image fram, int movment_fram,
+// Animation and Motion
+void				compose_frames(t_game *game, t_image fram, int movment_fram,
 						int action_y, t_image img);
 void				my_mlx_pixel_put(t_image fram, int x, int y, int color);
 unsigned int		get_color(t_image img, int x, int y);
 void				init_frams(t_game *game);
-// void			animate_texture(t_game *game, char *act);
 void				animate_player(t_game *game);
-void				render_player(t_game *game);
+void				create_background_buffer(t_game *game);
+void				animate_collectibles(t_game *game);
+void				compose_frames_coin(t_game *game, t_image fram,
+						int move_fram, int action_y, t_image img);
+void				compose_frames_exit(t_game *game, t_image fram,
+						int move_fram, int action_y, t_image img);
+
+// Coin Management
+int					store_coin_positions(t_game *game);
+// Exit Managment
+void				animate_exit(t_game *game);
+
+// Movement Handling
+void				handle_movement(t_game *game, int dx, int dy, int sprite);
 
 #endif
-
-// the goal of today is to creat a perfect game for non bonus
-// smothe animation and error checking norminnette and all thing must be graet ok ;
-// background  warping checking the back ground that must be put to the back of player
-// save backgrounds positions
-// add more structs and more good practices
-
-// today must finish the playing part

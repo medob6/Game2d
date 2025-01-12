@@ -1,186 +1,273 @@
 #include "solong.h"
 
+// Rendering Functions
+
+// These functions handle rendering elements on the screen.
+
 void	render_tile(t_game *game, t_image *img, int x, int y)
 {
 	mlx_put_image_to_window(game->mlx, game->win, img->img, x * TILE_SIZE, y
 		* TILE_SIZE);
 }
 
-void	clear_fram(t_image fram)
+static void	render_player_with_offset(t_game *game, int offset_x, int offset_y)
 {
-	int	x;
-	int	y;
+	mlx_put_image_to_window(game->mlx, game->win, game->player.fram.img,
+		(game->player.x * TILE_SIZE) + offset_x, (game->player.y * TILE_SIZE)
+		+ offset_y);
+}
 
-	y = 0;
-	while (y < 64)
+void	render_all_coins(t_game *game)
+{
+	int	i;
+
+	i = 0;
+	while (i < game->coin.total)
 	{
-		x = 0;
-		while (x < 64)
+		if (game->coins_x_y[i].exist == 1)
 		{
-			my_mlx_pixel_put(fram, x, y, 0xFF000000);
-			x++;
+			game->coin.x = game->coins_x_y[i].x;
+			game->coin.y = game->coins_x_y[i].y;
+			compose_frames_coin(game, game->coin.fram, game->coin.fram_nbr, 0,
+				game->coin.img);
+			render_tile(game, &game->coin.fram, game->coins_x_y[i].x,
+				game->coins_x_y[i].y);
 		}
-		y++;
+		i++;
 	}
 }
+
+// Player Movement and Animation
+
+// These functions manage player actions and animations.
+
+void	animate_player_frame(t_game *game)
+{
+	// game->frames_delay = 0;
+	game->player.fram_nbr++;
+	if (game->player.fram_nbr >= 6)
+		game->player.fram_nbr = 0;
+	if (ft_strchr("rlud", game->player.action) && game->player.action != 0)
+		game->player.move_offset += TILE_SIZE / STEPS;
+}
+
+static void	reset_player_movement(t_game *game)
+{
+	game->player.move_offset = 0;
+	game->player.action = 0;
+}
+
+static void	update_player_position(t_game *game, int dx, int dy)
+{
+	game->player.x += dx;
+	game->player.y += dy;
+	reset_player_movement(game);
+}
+
 void	animate_player(t_game *game)
 {
-	game->frames_delay++;
-	if (game->frames_delay >= 80)
-	{
-		game->frames_delay = 0;
-		game->player.fram_nbr++;
-		if (game->player.fram_nbr == 6)
-			game->player.fram_nbr = 0;
-		if (game->player.action == 'r')
-			game->player.move_offset += TILE_SIZE / 12;
-	}
-	clear_fram(game->player.fram);
+	animate_player_frame(game);
 	if (game->player.action == 'r')
-	{
-		compose_frams(game, game->player.fram, game->player.fram_nbr, 1,
-			game->player.img);
-		if (game->player.move_offset >= TILE_SIZE)
-		{
-			game->player.move_offset = 0;
-			game->player.action = 0;
-			// if (check_next_position())
-			game->player.x++;
-		}
-		else
-		{
-			render_tile(game, &game->floor, game->player.x, game->player.y);
-			mlx_put_image_to_window(game->mlx, game->win, game->player.fram.img,
-				(game->player.x * TILE_SIZE) + game->player.move_offset,
-				game->player.y * TILE_SIZE);
-			return ;
-		}
-	}
+		handle_movement(game, 1, 0, 1);
+	else if (game->player.action == 'l')
+		handle_movement(game, -1, 0, 1);
+	else if (game->player.action == 'u')
+		handle_movement(game, 0, -1, 1);
+	else if (game->player.action == 'd')
+		handle_movement(game, 0, 1, 1);
 	else
 	{
-		compose_frams(game, game->player.fram, game->player.fram_nbr, 0,
+		compose_frames(game, game->player.fram, game->player.fram_nbr, 0,
 			game->player.img);
+		render_player_with_offset(game, 0, 0);
 	}
-	mlx_put_image_to_window(game->mlx, game->win, game->player.fram.img,
-		game->player.x * TILE_SIZE, game->player.y * TILE_SIZE);
 }
 
-void	animate_collectible(t_game *game, int x, int y)
+// Coin Management
+
+// These functions handle coin rendering, animation, and removal.
+
+void	animate_coin_frame(t_game *game)
 {
-	clear_fram(game->coin.fram);
-	compose_frams(game, game->coin.fram, 0, 0, game->coin.img);
-	render_tile(game, &game->coin.fram, x, y);
-}
-void	animate_exit(t_game *game, int x, int y)
-{
-	clear_fram(game->exit.fram);
-	compose_frams(game, game->exit.fram, 0, 0, game->exit.img);
-	render_tile(game, &game->exit.fram, x, y);
+	// game->frames_delay = 0;
+	game->coin.fram_nbr++;
+	if (game->coin.fram_nbr >= 7)
+		game->coin.fram_nbr = 1;
 }
 
-// int		check_next_position(t_game game)
+void	remove_coins_x_y(t_game *game, int x, int y)
+{
+	int	i;
+
+	i = 0;
+	while (i < game->coin.total)
+	{
+		if (game->coins_x_y[i].x == x && game->coins_x_y[i].y == y)
+		{
+			game->coins_x_y[i].exist = 0;
+		}
+		i++;
+	}
+}
+#define COIN_FRAME_DELAY 7000
+
+static int	should_update_frame(int *counter, int delay)
+{
+	(*counter)++;
+	if (*counter >= delay)
+	{
+		*counter = 0;
+		return (1);
+	}
+	return (0);
+}
+void	animate_collectibles(t_game *game)
+{
+	if (should_update_frame(&game->frame_count, COIN_FRAME_DELAY))
+	{
+		game->coin.fram_nbr = (game->coin.fram_nbr + 1) % 7;
+		render_all_coins(game);
+	}
+}
+// void	animate_collectibles(t_game *game)
 // {
-// 	if (game->map.map[new_y][new_x] != '1')
-// 	{
-// 		if (game->map.map[new_y][new_x] == 'C')
-// 		{
-// 			game->coins++;
-// 			game->map.map[new_y][new_x] = '0';
-// 		}
-// 		if (game->map.map[new_y][new_x] == 'E'
-// 			&& game->coins == game->coins_total)
-// 		{
-// 			ft_printf("You won in %d moves!\n", ++game->moves);
-// 			exit(0);
-// 		}
-// 		if (game->map.map[game->player_y][game->player_x] == 'P')
-// 			game->map.map[game->player_y][game->player_x] = '0';
-// 		if (game->map.map[new_y][new_x] == 'E')
-// 			return (0);
-// 		game->moves++;
-// 		ft_printf("Moves: %d\n", game->moves);
-// 	}
+// 	animate_coin_frame(game);
+// 	game->coin.fram_nbr = (game->coin.fram_nbr + 1) % 7;
+// 	render_all_coins(game);
 // }
 
-// void animate_boombardement()
-// {
+// Game Logic
 
-// }
+// These functions manage game states, input handling, and player interaction.
 
-void	render_map(t_game *game)
+int	check_next_position(t_game *game, int new_x, int new_y)
 {
 	char	tile;
 
-	int x, y;
-	y = 0;
-	while (y < game->map.map_h)
+	tile = game->map.map[new_y][new_x];
+	if (tile == '1')
+		return (0);
+	if (game->player.move_offset >= (TILE_SIZE / STEPS) * 10 && tile == 'C')
 	{
-		x = 0;
-		while (x < game->map.map_w)
-		{
-			tile = game->map.map[y][x];
-			if (tile == '0')
-				render_tile(game, &game->floor, x, y);
-			else if (tile == '1')
-				render_tile(game, &game->wall, x, y);
-			// here i must add a function that put a defirrent background based on the initial put of backgrounds
-			else if (tile == 'C')
-				animate_collectible(game, x, y);
-			else if (tile == 'E')
-				animate_exit(game, x, y);
-			x++;
-		}
-		y++;
+		game->rerender_map = 0;
+		game->coin.collected++;
+		remove_coins_x_y(game, new_x, new_y);
+		game->map.map[new_y][new_x] = '0';
 	}
-	animate_player(game);
+	return (1);
 }
+
+int	check_win(t_game *game, int next_x, int next_y)
+{
+	if (game->map.map[next_y][next_x] == 'E'
+		&& game->coin.collected == game->coin.total)
+		return (1);
+	return (0);
+}
+
+void	handle_movement(t_game *game, int dx, int dy, int sprite)
+{
+	int	n;
+
+	n = sprite;
+	if (check_win(game, game->player.x + dx, game->player.y + dy))
+	{
+		if (game->player.move_offset >= (TILE_SIZE / STEPS * 10))
+		{
+			ft_printf("You won in %d moves!\n", ++game->player.moves);
+			exit(0);
+		}
+		n = 1;
+	}
+	if (!check_next_position(game, game->player.x + dx, game->player.y + dy))
+	{
+		reset_player_movement(game);
+	}
+	if (game->map.map[game->player.y + dy][game->player.x + dx] == 'C'
+		&& (game->player.move_offset >= (TILE_SIZE / STEPS * 5)))
+		n = 1;
+	else
+		n = sprite;
+	compose_frames(game, game->player.fram, game->player.fram_nbr, n,
+		game->player.img);
+	if (game->player.move_offset >= TILE_SIZE)
+		update_player_position(game, dx, dy);
+	else
+		render_player_with_offset(game, dx * game->player.move_offset, dy
+			* game->player.move_offset);
+}
+
+void	move_player(t_game *game, int new_x, int new_y)
+{
+	if (game->player.action != 0 && check_next_position(game, new_x, new_y))
+	{
+		game->player.moves++;
+		ft_printf("Moves: %d\n", game->player.moves);
+	}
+}
+
+// Input Handling
+
+// These functions process player input and control game actions.
 
 int	handle_input(int key, t_game *game)
 {
 	int	new_x;
 	int	new_y;
 
-	// intead of checking player position each time i should ,
-	// call functions that animate that movment then check if valid movment and update player position
+	if (game->player.action != 0)
+		return (1);
 	new_x = game->player.x;
 	new_y = game->player.y;
-	if (key == 65307)
+	if (key == KEY_ESCAPE)
 		exit(0);
-	else if (key == 119)
+	if (key == KEY_UP || key == ARROW_UP)
+	{
+		game->player.action = 'u';
 		new_y--;
-	else if (key == 115)
+	}
+	else if (key == KEY_DOWN || key == ARROW_DOWN)
+	{
+		game->player.action = 'd';
 		new_y++;
-	else if (key == 97)
+	}
+	else if (key == KEY_LEFT || key == ARROW_LEFT)
+	{
+		game->player.action = 'l';
 		new_x--;
-	else if (key == 100)
+	}
+	else if (key == KEY_RIGHT || key == ARROW_RIGHT)
 	{
 		game->player.action = 'r';
-		// animate_player(game);
+		new_x++;
 	}
 	else
 		return (0);
-	if (game->map.map[new_y][new_x] != '1')
-	{
-		if (game->map.map[new_y][new_x] == 'C')
-		{
-			game->coin.collected++;
-			game->map.map[new_y][new_x] = '0';
-		}
-		if (game->map.map[new_y][new_x] == 'E'
-			&& game->coin.collected == game->coin.total)
-		{
-			// here instead of just pritn you won must put an animated won for some time then exit
-			ft_printf("You won in %d moves!\n", ++game->player.moves);
-			exit(0);
-		}
-		if (game->map.map[game->player.y][game->player.x] == 'P')
-			game->map.map[game->player.y][game->player.x] = '0';
-		if (game->map.map[new_y][new_x] == 'E')
-			return (0);
-		game->player.x = new_x;
-		game->player.y = new_y;
-		game->player.moves++;
-		ft_printf("Moves: %d\n", game->player.moves);
-	}
+	move_player(game, new_x, new_y);
 	return (0);
+}
+
+// Exit Animation
+
+// Handles the animation for the game exit. ,
+// only if coins all collected then exit is slowly opening then player go to it
+void	animate_exit_frame(t_game *game)
+{
+	// game->frames_delay = 0;
+	game->exit.fram_nbr++;
+	if (game->exit.fram_nbr >= 3)
+		return ;
+}
+void	animate_exit(t_game *game)
+{
+	if (game->coin.collected == game->coin.total)
+	{
+		animate_exit_frame(game);
+		game->exit.fram_nbr++;
+		if (game->exit.fram_nbr >= 4)
+			game->exit.fram_nbr = 4;
+	}
+	compose_frames_exit(game, game->exit.fram, 0, game->exit.fram_nbr,
+		game->exit.img);
+	render_tile(game, &game->exit.fram, game->exit.y, game->exit.x);
 }
