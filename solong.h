@@ -9,10 +9,11 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
+# include <time.h>
 # include <unistd.h>
 
 // Constants
-# define TILE_SIZE 64
+# define TILE_SIZE 150
 # define MIN_MAP_HEIGHT 3
 # define MIN_MAP_WIDTH 3
 # define MIN_MAP_SIZE 18
@@ -61,11 +62,13 @@ typedef struct s_player
 	int				x;
 	int				y;
 	t_image			img;
+	t_image			dead;
 	unsigned int	moves;
 	int				fram_nbr;
 	char			action;
 	t_image			fram;
 	int				move_offset;
+	int				speed;
 }					t_player;
 
 typedef struct s_exit
@@ -76,6 +79,7 @@ typedef struct s_exit
 	int				x;
 	int				y;
 	int				fram_nbr;
+	int				speed;
 }					t_exit;
 
 typedef struct s_coin
@@ -87,6 +91,7 @@ typedef struct s_coin
 	int				y;
 	int				total;
 	t_image			fram;
+	int				speed;
 }					t_coin;
 
 typedef struct s_d_wall
@@ -102,22 +107,47 @@ typedef struct s_cordinant
 	int				y;
 	int				exist;
 }					t_cordinant;
+typedef struct s_waves
+{
+	t_image			img;
+	t_image			fram;
+	char			*action;
+	int				x;
+	int				y;
+	int				fram_nbr;
+	int				speed;
+
+}					t_waves;
+typedef struct s_floor
+{
+	t_image			img;
+	t_image			fram;
+	int				fram_nbr;
+}					t_floor;
 
 typedef struct s_game
 {
 	void			*mlx;
 	void			*win;
 	t_player		player;
+	t_player		enemy;
 	t_coin			coin;
 	t_exit			exit;
 	t_d_wall		d_wall;
 	t_image			wall;
-	t_image			floor;
+	t_image			winer;
+	t_image			loser;
+	t_floor			floor;
 	t_image			background;
 	t_map			map;
+	t_waves			waves;
 	int				frame_count;
 	int				rerender_map;
+	float			dt;
 	t_cordinant		*coins_x_y;
+	t_cordinant		*enemy_x_y;
+	int				enemy_sprite;
+
 }					t_game;
 
 typedef struct s_flood
@@ -144,16 +174,20 @@ void				init_image(void *mlx, t_image *img, char *path);
 int					handle_input(int key, t_game *game);
 
 // Animation and Motion
-void				compose_frames(t_game *game, t_image fram, int movment_fram,
-						int action_y, t_image img);
+void				compose_frames(t_game *game, t_player *player,
+						int action_y);
 void				my_mlx_pixel_put(t_image fram, int x, int y, int color);
 unsigned int		get_color(t_image img, int x, int y);
 void				init_frams(t_game *game);
 void				animate_player(t_game *game);
+void				animate_enemy(t_game *game);
 void				create_background_buffer(t_game *game);
 void				animate_collectibles(t_game *game);
+// void				compose_frames_coin(t_game *game, t_image fram,
+// 						int move_fram, int action_y, t_image img);
 void				compose_frames_coin(t_game *game, t_image fram,
-						int move_fram, int action_y, t_image img);
+						int move_fram, int action_y, t_image img, int coin_x,
+						int coin_y);
 void				compose_frames_exit(t_game *game, t_image fram,
 						int move_fram, int action_y, t_image img);
 
@@ -164,5 +198,8 @@ void				animate_exit(t_game *game);
 
 // Movement Handling
 void				handle_movement(t_game *game, int dx, int dy, int sprite);
+void				chose_frames_floor(t_game *game, t_floor *floor);
+int					chose_fram_nbr(t_map *map, int x, int y);
+
 
 #endif

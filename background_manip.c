@@ -1,5 +1,6 @@
 #include "solong.h"
 
+// this is camera but i wont do it
 // Function to shift the background image horizontally by 'step' pixels
 t_image	make_new_background(t_game game, t_image back_ground, int step)
 {
@@ -25,7 +26,7 @@ t_image	make_new_background(t_game game, t_image back_ground, int step)
 				new_col += back_ground.w; // Handle negative wrapping
 			// Get the color from the original image and put it in the new image
 			color = get_color(back_ground, new_col, row);
-			my_mlx_pixel_put(&fram, col, row, color);
+			my_mlx_pixel_put(fram, col, row, color);
 			col++;
 		}
 		row++;

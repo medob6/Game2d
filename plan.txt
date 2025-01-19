@@ -1,5 +1,1 @@
-2// first i will find tilestes to suit my game
-0 // MAKE MAKE FILE : DONE
-1// second i will improve code for norminnete and make compose fram work deponding on the input player, enemy .. (moving) coin, exit .... (static)  
-3// animation for boureder , and maybe change player movment logic , and puting map must be smart
-4// enemy algorithem and animation 
+// first i should just show the game

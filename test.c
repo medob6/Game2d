@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SCALE_FACTOR 0.5
+#define SCALE_FACTOR 3.5
 
 typedef struct s_image
 {
@@ -59,8 +59,8 @@ int	main(void)
 		return (1);
 	}
 	// Load the source image
-	game.src.img = mlx_xpm_file_to_image(game.mlx, "floor", &game.src.width,
-			&game.src.height);
+	game.src.img = mlx_xpm_file_to_image(game.mlx, "textures/win_sprite.xpm",
+			&game.src.width, &game.src.height);
 	if (!game.src.img)
 	{
 		fprintf(stderr, "Error loading image\n");
@@ -92,5 +92,4 @@ int	main(void)
 	return (0);
 }
 
-
-// i should use this scaling algo to wom game interface 
+// i should use this scaling algo to wom game interface
