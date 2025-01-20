@@ -30,11 +30,6 @@
 # define ARROW_LEFT 65361
 # define ARROW_RIGHT 65363
 
-// Background Types
-# define GREEN_GRASS Path_to_grass
-# define YELLOW_GRASS Path_to_yellow_grass
-# define HARSH_GREEN_GRASS Path_to_hgreen_grass
-# define ROCKY_LAND Path_to_rocky_land
 
 // Struct Definitions
 typedef struct s_image
@@ -100,24 +95,12 @@ typedef struct s_d_wall
 	t_image			farm;
 	int				d_wall_farm_nbr;
 }					t_d_wall;
-
 typedef struct s_cordinant
 {
 	int				x;
 	int				y;
 	int				exist;
 }					t_cordinant;
-typedef struct s_waves
-{
-	t_image			img;
-	t_image			fram;
-	char			*action;
-	int				x;
-	int				y;
-	int				fram_nbr;
-	int				speed;
-
-}					t_waves;
 typedef struct s_floor
 {
 	t_image			img;
@@ -140,13 +123,13 @@ typedef struct s_game
 	t_floor			floor;
 	t_image			background;
 	t_map			map;
-	t_waves			waves;
 	int				frame_count;
 	int				rerender_map;
 	float			dt;
 	t_cordinant		*coins_x_y;
 	t_cordinant		*enemy_x_y;
 	int				enemy_sprite;
+	int end_game;
 
 }					t_game;
 

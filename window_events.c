@@ -138,8 +138,8 @@ void	animate_player(t_game *game)
 void	animate_coin_frame(t_game *game)
 {
 	game->coin.speed++;
-	if (game->coin.speed % 2 == 0)
-		game->coin.fram_nbr = (game->coin.fram_nbr + 1) % 6;
+	if (game->coin.speed % 3 == 0)
+		game->coin.fram_nbr = (game->coin.fram_nbr + 1) % 5;
 }
 
 void	remove_coins_x_y(t_game *game, int x, int y)
@@ -201,7 +201,35 @@ int	check_win(t_game *game, int next_x, int next_y)
 		return (1);
 	return (0);
 }
+void	hit_or_die(t_game *game, int dx, int dy, int sprite)
+{
+	int	n;
 
+	n = 7;
+	if (abs(game->enemy.y - game->player.y) <= 2 && game->enemy.x
+		- game->player.x == 0)
+	{
+		n = 6;
+		game->enemy_sprite = 5 * (sprite == 4) + 2 * (sprite == 1);
+	}
+	else if (abs(game->enemy.x - game->player.x) <= 2 && game->enemy.y
+		- game->player.y == 0)
+		game->enemy_sprite = 5 * (sprite == 4) + 2 * (sprite == 1);
+	else
+		game->enemy_sprite = sprite;
+	if ((game->enemy.y + dy == game->player.y && game->enemy.x
+			+ dx == game->player.x) && (game->enemy.move_offset >= (TILE_SIZE
+				/ STEPS)))
+	{
+		game->enemy_sprite = 5 * (sprite == 4) + 2 * (sprite == 1);
+		if (game->enemy.y + dy == game->player.y && game->enemy.x
+			+ dx == game->player.x && game->enemy.move_offset >= (TILE_SIZE
+				/ STEPS * 10))
+		{
+			game->end_game = 1;
+		}
+	}
+}
 void	handle_movement_enemy(t_game *game, int dx, int dy, int sprite)
 {
 	if (!check_next_position_enemy(game, game->enemy.x + dx, game->enemy.y
@@ -209,17 +237,7 @@ void	handle_movement_enemy(t_game *game, int dx, int dy, int sprite)
 	{
 		reset_player_movement(&game->enemy);
 	}
-	if (game->enemy.y + dy == game->player.y && game->enemy.x
-		+ dx == game->player.x && (game->enemy.move_offset >= (TILE_SIZE
-				/ STEPS)))
-	{
-		game->enemy_sprite = 5 * (sprite == 4) + 2 * (sprite == 1);
-		if (game->enemy.move_offset >= (TILE_SIZE / STEPS * 4))
-		{
-			printf("you died");
-			exit(0);
-		}
-	}
+	hit_or_die(game, dx, dy, sprite);
 	compose_frames(game, &game->enemy, game->enemy_sprite);
 	if (game->enemy.move_offset >= TILE_SIZE)
 		update_player_position(&game->enemy, dx, dy);
@@ -237,18 +255,26 @@ void	handle_movement(t_game *game, int dx, int dy, int sprite)
 	{
 		if (game->player.move_offset >= (TILE_SIZE / STEPS * 12))
 		{
-			ft_printf("You won in %d moves!\n", ++game->player.moves);
-			exit(0);
+			game->player.moves++;
+			game->end_game = 2;
+			// ft_printf("You won in %d moves!\n", );
+			// exit(0);
 		}
 	}
 	if (game->player.y + dy == game->enemy.y && game->player.x
 		+ dx == game->enemy.x && (game->player.move_offset >= (TILE_SIZE
 				/ STEPS)))
 	{
-		if (game->player.move_offset >= (TILE_SIZE / STEPS * 4))
+		if (game->player.move_offset >= (TILE_SIZE / STEPS * 6))
 		{
+			game->end_game = 1;
+			// mlx_clear_window(game->mlx, game->win);
+			// mlx_put_image_to_window(game->mlx, game->win, game->loser.img,
+			// 	game->map.map_w * TILE_SIZE / 2 - game->loser.w / 2,
+			// 	game->map.map_h * TILE_SIZE / 2 - game->loser.h / 2);
+			// usleep(3000);
 			printf("you died");
-			exit(0);
+			// exit(0);
 		}
 	}
 	if (!check_next_position(game, game->player.x + dx, game->player.y + dy))
@@ -271,9 +297,12 @@ void	move_player(t_game *game, int new_x, int new_y)
 	if (game->player.action != 0 && check_next_position(game, new_x, new_y))
 	{
 		game->player.moves++;
-		ft_printf("Moves: %d\n", game->player.moves);
-		// mlx_string_put(game->mlx, game->win, 0, 0, 0xFFFFFF,
-		// 	game->player.moves);
+		// ft_printf("Moves: %d\n", game->player.moves);
+		// mlx_clear_window(game->mlx, game->win);
+		render_tile(game, &game->wall, 0, 0);
+		mlx_string_put(game->mlx, game->win, TILE_SIZE / 2, TILE_SIZE / 2,
+			0xFF0000, ft_strjoin("Moves: ", ft_itoa(game->player.moves)));
+		// the problem is when i put the new string it overide the older number
 	}
 }
 
@@ -332,25 +361,58 @@ void	animate_enemy_frame(t_game *game)
 
 void	give_enemy_an_action(t_game *game)
 {
-	int	action;
+	int			dx;
+	int			dy;
+	int			action;
+	static int	has_seen_player;
 
-	// Generate a random number between 0 and 3 for enemy movement direction
-	action = rand() % 4;
-	if (action == 0 && check_next_position_enemy(game, game->enemy.x + 1,
-			game->enemy.y))
-		game->enemy.action = 'r'; // Move right
-	else if (action == 1 && check_next_position_enemy(game, game->enemy.x - 1,
-			game->enemy.y))
-		game->enemy.action = 'l'; // Move left
-	else if (action == 2 && check_next_position_enemy(game, game->enemy.x,
-			game->enemy.y - 1))
-		game->enemy.action = 'u'; // Move up
-	else if (action == 3 && check_next_position_enemy(game, game->enemy.x,
-			game->enemy.y + 1))
-		game->enemy.action = 'd'; // Move down
+	dx = game->player.x - game->enemy.x;
+	dy = game->player.y - game->enemy.y;
+	if (abs(dx) <= 2 && abs(dy) <= 2)
+	{
+		has_seen_player = 1;
+	}
+	if (has_seen_player)
+	{
+		if (abs(dx) > abs(dy))
+		{
+			if (dx > 0 && check_next_position(game, game->enemy.x + 1,
+					game->enemy.y))
+				game->enemy.action = 'r';
+			else if (dx < 0 && check_next_position(game, game->enemy.x - 1,
+					game->enemy.y))
+				game->enemy.action = 'l';
+		}
+		else
+		{
+			if (dy > 0 && check_next_position(game, game->enemy.x, game->enemy.y
+					+ 1))
+				game->enemy.action = 'd';
+			else if (dy < 0 && check_next_position(game, game->enemy.x,
+					game->enemy.y - 1))
+				game->enemy.action = 'u';
+		}
+	}
 	else
-		game->enemy.action = 0; // No movement if the direction is blocked
+	{
+		action = rand() % 4;
+		if (action == 0 && check_next_position_enemy(game, game->enemy.x + 1,
+				game->enemy.y))
+			game->enemy.action = 'r';
+		else if (action == 1 && check_next_position_enemy(game, game->enemy.x
+				- 1, game->enemy.y))
+			game->enemy.action = 'l';
+		else if (action == 2 && check_next_position_enemy(game, game->enemy.x,
+				game->enemy.y - 1))
+			game->enemy.action = 'u';
+		else if (action == 3 && check_next_position_enemy(game, game->enemy.x,
+				game->enemy.y + 1))
+			game->enemy.action = 'd';
+		else
+			game->enemy.action = 'd';
+	}
 }
+
 void	animate_enemy(t_game *game)
 {
 	animate_enemy_frame(game);
@@ -383,7 +445,6 @@ void	animate_enemy(t_game *game)
 		compose_frames(game, &game->enemy, 0);
 		render_enemy_with_offset(game, 0, 0);
 	}
-	// check_collision_and_exit(game);
 }
 
 // Exit Animation
@@ -422,7 +483,8 @@ void	animate_exit(t_game *game)
 	animate_exit_frame(game);
 	compose_frames_exit(game, game->exit.fram, game->exit.fram_nbr, 0,
 		game->exit.img);
-	//render_tile_to_image(game->background, game->exit.fram, game->exit.x,
-		//game->exit.y);
+	if (game->coin.collected == game->coin.total)
+		render_tile_to_image(game->background, game->exit.fram, game->exit.y,
+			game->exit.x);
 	render_tile(game, &game->exit.fram, game->exit.y, game->exit.x);
 }

@@ -1,0 +1,129 @@
+# 🎮 so_long Game Project
+
+## 📜 Table of Contents
+1. [📖 Introduction](#introduction)
+2. [✨ Features](#features)
+3. [🚀 Getting Started](#getting-started)
+4. [🕹️ How to Play](#how-to-play)
+5. [📂 Code Overview](#code-overview)
+6. [📁 Project Structure](#project-structure)
+7. [🔧 Technical Details](#technical-details)
+8. [🙏 Acknowledgments](#acknowledgments)
+
+## 📖 Introduction
+**so_long** is a 2D game built using the **MiniLibX** library and written entirely in **C**. This project demonstrates core game development concepts such as rendering, animation, event handling, and state management. The objective of the game is to collect all the collectibles and reach the exit while avoiding enemies.
+
+## ✨ Features
+- 🗺️ **Custom Map Loading**: Supports maps designed using a simple text-based format.
+- 🎨 **Animation**: Includes animated sprites for the player, enemies, and collectibles.
+- 🚪 **Collision Detection**: Prevents players from moving through walls or enemies.
+- 🎮 **Event Handling**: Implements keyboard controls and a window close handler.
+- 📸 **Dynamic Rendering**: Optimized rendering for map elements and animations.
+- 🏆 **Game States**: Win or lose conditions with visual feedback.
+
+## 🚀 Getting Started
+
+### Prerequisites
+- 🛠️ **Compiler**: `gcc` or any C compiler supporting the C99 standard.
+- 🖼️ **MiniLibX**: The project depends on the MiniLibX library for graphics rendering. Install it as per your system requirements.
+- 📦 **Make**: Ensure `make` is installed on your system.
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/so_long.git
+   cd so_long
+   ```
+2. Build the project:
+   ```bash
+   make
+   ```
+3. Run the game:
+   ```bash
+   ./so_long <map_file>
+   ```
+
+## 🕹️ How to Play
+- **🎯 Objective**: Collect all collectibles (`C`) and reach the exit (`E`) to win.
+- **🎛️ Controls**:
+  - `W`: Move up
+  - `A`: Move left
+  - `S`: Move down
+  - `D`: Move right
+  - `ESC`: Quit the game
+- **⚠️ Enemies**: Avoid the enemies or you will lose the game.
+
+## 📂 Code Overview
+
+### 🖌️ Rendering
+- **🧱 Tile-Based Rendering**: The map is composed of tiles, each represented by a 64x64 pixel sprite.
+- **📤 Background Buffer**: The map background is rendered to an off-screen buffer for efficiency.
+
+### 🎞️ Animation
+- Animations are implemented by cycling through sprite frames based on the game loop’s timing.
+- 🛠️ Functions:
+  - `animate_player`: Updates the player's sprite based on the frame count.
+  - `animate_enemy`: Handles enemy animations.
+  - `animate_collectibles`: Animates the collectibles.
+
+### 🖱️ Event Handling
+- Uses MiniLibX hooks to manage events:
+  - **⌨️ Keyboard Input**: `mlx_hook` is used to capture key presses and update the player's position.
+  - **❌ Window Close**: Handles the close button with a custom `handle_close` function.
+
+### 🔁 Game Loop
+The `game_loop` function ensures the game runs smoothly by:
+- 🔄 Updating animations.
+- 🖼️ Re-rendering the game state when necessary.
+- 🎯 Managing the game state (win/lose conditions).
+
+### 🗺️ Map Parsing
+Maps are loaded from text files and validated for:
+- 🔳 Rectangular shape.
+- 🛡️ Proper wall boundaries.
+- 🎮 Presence of required elements (`P`, `E`, `C`).
+
+## 📁 Project Structure
+```
+so_long/
+├── src/                 # Source code
+│   ├── main.c          # Entry point
+│   ├── game_loop.c     # Game loop and state management
+│   ├── rendering.c     # Rendering functions
+│   ├── animation.c     # Animation functions
+│   ├── input.c         # Input handling
+│   └── map_parser.c    # Map loading and validation
+├── include/            # Header files
+│   └── so_long.h       # Project-wide header
+├── textures/           # Game assets (sprites)
+├── maps/               # Example maps
+├── Makefile            # Build system
+└── README.md           # Project documentation
+```
+
+## 🔧 Technical Details
+
+### MiniLibX Integration
+- The MiniLibX library is used for creating a window, rendering images, and handling events.
+- 🛠️ Key MiniLibX functions:
+  - `mlx_init`: Initializes the MLX library.
+  - `mlx_new_window`: Creates a game window.
+  - `mlx_put_image_to_window`: Displays images in the window.
+  - `mlx_hook`: Registers event handlers (e.g., key press, window close).
+  - `mlx_loop`: Starts the MLX event loop.
+
+### Key Implementations
+1. **🔄 Game Loop**: The central mechanism that updates the game state and animations.
+2. **🎞️ Animation**: Smooth transitions between sprite frames.
+3. **🛡️ Collision Detection**: Prevents invalid moves and detects interactions with collectibles and enemies.
+4. **🏆 Win/Lose Conditions**: Visual feedback for the end-game state.
+
+### Challenges Solved
+- ⏲️ Blocking behaviors like `sleep` were replaced with time-based delays to ensure rendering continuity.
+- 🧹 Implemented a clean shutdown process to free resources and close the game gracefully.
+
+## 🙏 Acknowledgments
+- **🌐 42 Network**: For providing the opportunity to learn and develop this project.
+- **🎨 MiniLibX**: The lightweight graphics library used in this project.
+- **👩‍🏫 Mentors and Peers**: For their guidance and support during development.
+

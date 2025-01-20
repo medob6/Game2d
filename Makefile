@@ -30,7 +30,7 @@ $(NAME): $(OBJS) $(PRINTF) $(LIBFT)
 
 
 clean: 
-	$(RM) $(OBJS) $(OBJS_BONUS)
+	$(RM)
 	make clean -C printf
 	make clean -C libft
 

@@ -18,7 +18,6 @@ void	initialize_game_resources(t_game *game)
 	init_image(game->mlx, &game->winer, "textures/win_sprite.xpm");
 	init_image(game->mlx, &game->player.dead, "textures/death_sprite.xpm");
 	init_image(game->mlx, &game->loser, "textures/lose_sprite.xpm");
-	init_image(game->mlx, &game->waves.img, "textures/waves_sprite.xpm");
 	init_image(game->mlx, &game->enemy.img, "textures/enemy_sprites.xpm");
 	init_image(game->mlx, &game->exit.img, "textures/Door.xpm");
 	return ;
@@ -88,19 +87,14 @@ int	chose_fram_nbr(t_map *map, int x, int y)
 	unsigned char	binary;
 
 	binary = 0;
-	// Check right
 	if (x + 1 < map->map_w && map->map[y][x + 1] == '1')
 		binary |= 1;
-	// Check up
 	if (y - 1 >= 0 && map->map[y - 1][x] == '1')
 		binary |= (1 << 1);
-	// Check left
 	if (x - 1 >= 0 && map->map[y][x - 1] == '1')
 		binary |= (1 << 2);
-	// Check down
 	if (y + 1 < map->map_h && map->map[y + 1][x] == '1')
 		binary |= (1 << 3);
-	// printf("in index: x: %d y: %d we have tile: %d\n", x, y, binary);
 	return (binary);
 }
 
@@ -117,8 +111,7 @@ void	create_background_buffer(t_game *game)
 		{
 			tile = game->map.map[y][x];
 			game->floor.fram_nbr = chose_fram_nbr(&game->map, x, y);
-			chose_frames_floor(game, &game->floor); // creted succefully
-			// it does not add to the background
+			chose_frames_floor(game, &game->floor);
 			render_tile_to_image(game->background, game->floor.fram, x, y);
 			if (tile == '1')
 				render_tile_to_image(game->background, game->wall, x, y);
@@ -131,30 +124,68 @@ void	create_background_buffer(t_game *game)
 		y++;
 	}
 }
-
+char	*show_game_msg(t_game *game)
+{
+	if (game->end_game == 1)
+	{
+		return ("after all you died like champ");
+	}
+	else
+	{
+		return (ft_strjoin(ft_strjoin("You won the game in ",
+					ft_itoa(game->player.moves - 1)), " moves"));
+	}
+}
 int	game_loop(t_game *game)
 {
-	clock_t	last_time;
-	clock_t	curr_time;
+	clock_t		last_time;
+	clock_t		curr_time;
+	static int	exit_delay = 0;
 
 	last_time = clock();
 	if (game->rerender_map)
 	{
-		// create_background_buffer(game);
 		mlx_put_image_to_window(game->mlx, game->win, game->background.img, 0,
 			0);
+		mlx_string_put(game->mlx, game->win, TILE_SIZE / 2, TILE_SIZE / 2,
+			0xFF0000, ft_strjoin("Moves: ", ft_itoa(game->player.moves)));
 		game->rerender_map = 0;
 	}
 	curr_time = clock() - last_time;
 	while ((double)curr_time / CLOCKS_PER_SEC < game->dt)
 		curr_time = clock() - last_time;
-	animate_collectibles(game);
-	animate_exit(game);
-	animate_player(game);
-	animate_enemy(game);
-	game->frame_count = 0;
+	if (game->end_game == 0)
+	{
+		animate_exit(game);
+		animate_player(game);
+		animate_collectibles(game);
+		animate_enemy(game);
+		game->frame_count = 0;
+	}
+	if (game->end_game != 0)
+	{
+		mlx_clear_window(game->mlx, game->win);
+		if (game->end_game == 1)
+		{
+			mlx_put_image_to_window(game->mlx, game->win, game->loser.img,
+				game->map.map_w * TILE_SIZE / 2 - game->loser.w / 2,
+				game->map.map_h * TILE_SIZE / 2 - game->loser.h / 2);
+		}
+		else
+		{
+			mlx_put_image_to_window(game->mlx, game->win, game->winer.img,
+				game->map.map_w * TILE_SIZE / 2 - game->winer.w / 2,
+				game->map.map_h * TILE_SIZE / 2 - game->winer.h / 2);
+		}
+		if (++exit_delay > 10)
+		{
+			ft_printf("%s\n", show_game_msg(game));
+			exit(0);
+		}
+	}
 	return (0);
 }
+
 int	main(int ac, char **av)
 {
 	t_game game;
