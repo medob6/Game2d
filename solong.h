@@ -52,6 +52,7 @@ typedef struct s_map
 	char			**map_back_data;
 }					t_map;
 
+
 typedef struct s_player
 {
 	int				x;
