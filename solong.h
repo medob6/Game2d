@@ -5,7 +5,7 @@
 # include "libft/libft.h"
 # include "printf/ft_printf.h"
 # include <fcntl.h>
-# include <mlx.h>
+# include "../mlx_linux/mlx.h"
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
@@ -184,6 +184,7 @@ void				animate_exit(t_game *game);
 void				handle_movement(t_game *game, int dx, int dy, int sprite);
 void				chose_frames_floor(t_game *game, t_floor *floor);
 int					chose_fram_nbr(t_map *map, int x, int y);
+void	render_tile_to_image(t_image buffer, t_image image, int x_p, int y_p);
 
 
 #endif

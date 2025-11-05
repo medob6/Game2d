@@ -95,7 +95,7 @@ void	animate_player_frame(t_game *game)
 }
 void	animate_player(t_game *game)
 {
-	static	sprite = 0;
+	static	int sprite = 0;
 
 	animate_player_frame(game);
 	if (game->player.action == 'r')

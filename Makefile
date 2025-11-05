@@ -6,7 +6,9 @@ OBJS = $(SRC:.c=.o)
 RM = rm -f
 
 CFLAGS = -Wall -Wextra -O3
-LDFLAGS = -lmlx -lXext -lX11 -lm
+# -Lmlx_linux -lmlx_Linux -L/usr/lib -Imlx_linux -lXext -lX11 -lm -lz -Ofast
+# LDFLAGS = -lmlx -lXext -lX11 -lm
+LDFLAGS = -Lmlx_linux -lmlx_Linux -L/usr/lib -Imlx_linux -lXext -lX11 -lm -lz -Ofast
 LIBFT = libft/libft.a
 PRINTF = printf/libftprintf.a
 NAME = so_long
