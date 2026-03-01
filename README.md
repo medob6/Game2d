@@ -19,7 +19,7 @@ This project demonstrates:
 ## 🎬 Game Preview
 
 <!-- Add your gameplay screenshot here -->
-![Game Screenshot](path/to/screenshot.png)
+![Game Screenshot](gameplay/1337mapSean.png)
 
 <!-- Add gameplay GIF or video here -->
 ![Gameplay Demo](path/to/demo.gif)
