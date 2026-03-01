@@ -244,23 +244,19 @@ mlx_loop()                    // Start event loop
 
 ## 🎨 Screenshots & Media
 
-### Main Menu
-<!-- Add main menu screenshot -->
-![Main Menu](path/to/main-menu.png)
-
 ### Gameplay
 <!-- Add gameplay screenshots -->
-![Level 1](path/to/level1.png)
-![Level 2](path/to/level2.png)
-![Level 3](path/to/level3.png)
+![Level 1](lvl1.png)
+![Level 2](lvl2.png)
+![Level 3](lvl3.png)
 
 ### Victory Screen
 <!-- Add victory screen -->
-![Victory](path/to/victory.png)
+![Victory](vitoryScean.png)
 
 ### Game Over Screen
 <!-- Add game over screen -->
-![Game Over](path/to/gameover.png)
+![Game Over](lose.png)
 
 ---
 
