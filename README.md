@@ -21,12 +21,6 @@ This project demonstrates:
 <!-- Add your gameplay screenshot here -->
 ![Game Screenshot](1337mapScean.png)
 
-<!-- Add gameplay GIF or video here -->
-![Gameplay Demo](path/to/demo.gif)
-
-*Or add a video link:*
-[🎥 Watch Gameplay Video](your-video-link-here)
-
 ---
 
 ## ✨ Features
@@ -246,8 +240,11 @@ mlx_loop()                    // Start event loop
 
 ### Gameplay
 <!-- Add gameplay screenshots -->
+## Level 1
 ![Level 1](lvl1.png)
+## Level 2
 ![Level 2](lvl2.png)
+## Level 3
 ![Level 3](lvl3.png)
 
 ### Victory Screen
