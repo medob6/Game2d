@@ -203,13 +203,13 @@ int	check_win(t_game *game, int next_x, int next_y)
 }
 void	hit_or_die(t_game *game, int dx, int dy, int sprite)
 {
-	int	n;
+	//int	n;
 
-	n = 7;
+	//n = 7;
 	if (abs(game->enemy.y - game->player.y) <= 2 && game->enemy.x
 		- game->player.x == 0)
 	{
-		n = 6;
+		//n = 6;
 		game->enemy_sprite = 5 * (sprite == 4) + 2 * (sprite == 1);
 	}
 	else if (abs(game->enemy.x - game->player.x) <= 2 && game->enemy.y

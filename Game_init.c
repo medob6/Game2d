@@ -148,7 +148,7 @@ int	game_loop(t_game *game)
 		mlx_put_image_to_window(game->mlx, game->win, game->background.img, 0,
 			0);
 		mlx_string_put(game->mlx, game->win, TILE_SIZE / 2, TILE_SIZE / 2,
-			0xFF0000, ft_strjoin("Moves: ", ft_itoa(game->player.moves)));
+			0xFF0000, ft_strjoin("Moves: ", ft_itoa((int)game->player.moves)));
 		game->rerender_map = 0;
 	}
 	curr_time = clock() - last_time;
